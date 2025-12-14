@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+students/tonka-pa/**/outputs/
+students/tonka-pa/**/datasets/
+
+# *.png
+
+# *.ipynb
+# .ipynb_checkpoints/
