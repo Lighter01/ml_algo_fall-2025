@@ -1,5 +1,5 @@
 from time import perf_counter_ns
-from typing import Union, Optional, Any, Iterable, Literal
+from typing import Union, Optional, Any, Literal, Mapping, Iterable
 from pathlib import Path
 from collections import defaultdict
 
@@ -226,10 +226,36 @@ def score_knn(
     for kk, v in metrics.items():
         metrics[kk] = float(np.mean(v))
 
-    for kk, v in metrics.items():
-        print((kk + ":").ljust(26), f"{v*100:.2f}", "%" if kk != "prediction time" else "ns")
+    if proto_params is None:
+        methods_str = "NONE"
+    elif isinstance(proto_params, Mapping):
+        methods_str = _extract_method(proto_params).upper()
+    elif isinstance(proto_params, Iterable):
+        methods_str = " + ".join(_extract_method(p) for p in proto_params).upper()
+    else:
+        methods_str = "NONE" # fallback case
+    print(f"Model cross-validation performance estimation on {n_splits} folds.\n",
+          "=" * 60, '\n',
+          "Model:".ljust(34), clf.__class__.__qualname__, '\n',
+          "Kernel:".ljust(34), clf.kernel.__name__, '\n',
+          "Parameter k:".ljust(34), k, '\n',
+          "Prototype selection algorithm:".ljust(34), methods_str, '\n',
+          "-" * 60,
+          sep="")
 
+    for kk, v in metrics.items():
+        print((kk + ":").ljust(33), f"{v*100:.2f}", "%" if kk != "prediction time" else "ns")
+
+    print("=" * 60, '\n')
     return metrics
+
+
+def _extract_method(p: Any) -> str:
+    if p is None:
+        return "none"
+    if isinstance(p, Mapping):
+        return str(p.get("method", "none"))
+    return "none"
 
 #================================================================================================================#
 
@@ -243,10 +269,11 @@ def plot_decision_boundaries(
     use_std: bool = False,
     plot_confidence: bool = False,
     plot_all_points: bool = True,
+    title: str = "",
     save_dir: Path | None = None,
     filename: str | None = None,
     dpi: int = 300,
-    show: bool = True,
+    show_plot: bool = False,
 ):
     """
     Decision boundary plot in 2D PCA space, evaluated by mapping the grid back to original space.
@@ -389,6 +416,7 @@ def plot_decision_boundaries(
             )
 
     plt.legend(handles=legend_handles, title="Classes", loc="upper right")
+    plt.title(title, fontsize=15)
 
     # ----- Save if requested -----
     saved_path = None
@@ -404,7 +432,7 @@ def plot_decision_boundaries(
         saved_path = save_dir / filename
         fig.savefig(saved_path, dpi=dpi, bbox_inches="tight")
 
-    if show:
+    if show_plot:
         plt.show()
     else:
         plt.close(fig)
@@ -427,6 +455,7 @@ def compare_models(
         "precision": "Precision",
         "recall": "Recall",
         "prediction time": "Prediction Time (ns)",
+        "number of prototypes": "Number of Prototypes"
     }
 
     rows = []
@@ -452,6 +481,7 @@ def compare_models(
         "Precision",
         "Recall",
         "Prediction Time (ns)",
+        "Number of Prototypes"
     ]
     for c in cols_order:
         if c not in df.columns:
@@ -473,7 +503,7 @@ def compare_models(
 
     # Metrics groups
     higher_is_better = ["F1", "Accuracy", "Precision", "Recall"]
-    lower_is_better = ["Prediction Time (ns)"]
+    lower_is_better = ["Prediction Time (ns)", "Number of Prototypes"]
 
     styled_df = (
         df.style
@@ -492,6 +522,7 @@ def compare_models(
             "Precision": "{:.3f}",
             "Recall": "{:.3f}",
             "Prediction Time (ns)": "{:.4f}",
+            "Number of Prototypes": "{}"
         }, na_rep="—")
         .set_caption("Model Performance Comparison (sorted by F1)")
     )

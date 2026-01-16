@@ -1,4 +1,4 @@
-from typing import Optional, Any, Iterable
+from typing import Optional, Any, Iterable, Mapping
 from tqdm import tqdm
 from pathlib import Path
 
@@ -23,6 +23,28 @@ RANDOM_SEED = 4012025
 
 #================================================================================================================#
 
+#========== Helpers ==========#
+
+def _extract_method(p: Any) -> str:
+    if p is None:
+        return "none"
+    if isinstance(p, Mapping):
+        return str(p.get("method", "none"))
+    return "none"
+
+def _get_method_string(proto_params: Optional[dict[str, Any] | Iterable[dict[str, Any]]] = None):
+    if proto_params is None:
+        methods_str = ""
+    elif isinstance(proto_params, Mapping):
+        methods_str = _extract_method(proto_params).upper()
+    elif isinstance(proto_params, Iterable):
+        methods_str = " + ".join(_extract_method(p) for p in proto_params).upper()
+    else:
+        methods_str = ""
+    return methods_str
+
+#=============================#
+
 #========== K Parameter Optimization Process Functions ==========#
 
 def optimize_k_with_cv(
@@ -35,7 +57,8 @@ def optimize_k_with_cv(
     proto_params: Optional[dict[str, Any] | Iterable[dict[str, Any]]] = None,
     n_splits: int = 20,
     seed: int = RANDOM_SEED,
-    plot: bool = False,
+    plot: bool = True,
+    show_plot: bool = False,
     save_dir: Path | None = None,
     filename: str | None = None,
 ):
@@ -161,6 +184,9 @@ def optimize_k_with_cv(
     opt_err = float(errors[best_idx])
 
     if plot:
+
+        methods_str = _get_method_string(proto_params)
+
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=ks, y=errors, mode="lines", name="CV empirical risk"))
         fig.add_trace(
@@ -171,16 +197,22 @@ def optimize_k_with_cv(
                 name=f"min @ k={opt_k}",
                 marker=dict(size=12, symbol="x"),
             )
-        )
+        )  
+
+        title = "CV empirical risk vs k"
+        if methods_str:
+            title += f" [{methods_str}]"
+
         fig.update_layout(
-            title="CV empirical risk vs k",
+            title=title,
             xaxis_title="k (number of neighbors)",
             yaxis_title="Empirical risk (CV error rate)",
             hovermode="x unified",
         )
         fig.add_vline(x=opt_k, line_dash="dash", annotation_text=f"k* = {opt_k}", annotation_position="top")
 
-        fig.show()
+        if show_plot:
+            fig.show()
 
         if save_dir is not None:
             save_dir = Path(save_dir)
@@ -203,7 +235,8 @@ def optimize_k_with_loo(
     proto_params: Optional[dict[str, Any] | Iterable[dict[str, Any]]] = None,
     block_size: int = 256,
     seed: int = RANDOM_SEED,
-    plot: bool = False,
+    plot: bool = True,
+    show_plot: bool = False,
     save_dir: Path | None = None,
     filename: str | None = None,
 ):
@@ -346,6 +379,9 @@ def optimize_k_with_loo(
     opt_err = float(errors[best_idx])
 
     if plot:
+
+        methods_str = _get_method_string(proto_params)
+
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=ks, y=errors, mode="lines", name="LOO empirical risk"))
         fig.add_trace(
@@ -357,15 +393,21 @@ def optimize_k_with_loo(
                 marker=dict(size=12, symbol="x"),
             )
         )
+
+        title = "LOO empirical risk vs k"
+        if methods_str:
+            title += f" [{methods_str}]"
+
         fig.update_layout(
-            title="LOO empirical risk vs k",
+            title=title,
             xaxis_title="k (number of neighbors)",
             yaxis_title="Empirical risk (LOO error rate)",
             hovermode="x unified",
         )
         fig.add_vline(x=opt_k, line_dash="dash", annotation_text=f"k* = {opt_k}", annotation_position="top")
 
-        fig.show()
+        if show_plot:
+            fig.show()
 
         if save_dir is not None:
             save_dir = Path(save_dir)

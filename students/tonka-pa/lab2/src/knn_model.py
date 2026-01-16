@@ -31,8 +31,9 @@ RANDOM_SEED = 4012025
 def uniform(r):
     return (r <= 1).astype(float)
 
+# TODO: modify to take power to make more universal (p=0 == uniform, p=1 == inverse, p=2 == squared inverse (too local))
 def inverse(r):
-    return (1. / r)
+    return (1. / (r + 1e-15))
 
 def triangular(r):
     return np.maximum(0.0, 1.0 - r)
@@ -332,7 +333,8 @@ class KNearestNeighbors:
         self,
         k_min: int,
         k_max: int,
-        plot: bool = False,
+        plot: bool = True,
+        show_plot: bool = False,
         save_dir: Path | None = None,
         filename: str | None = None,
         ref_idx: Optional[Iterable[int]] = None,
@@ -394,7 +396,8 @@ class KNearestNeighbors:
                 annotation_position="top",
             )
 
-            fig.show()
+            if show_plot:
+                fig.show()
 
             if save_dir is not None:
                 save_dir = Path(save_dir)
@@ -826,7 +829,8 @@ class SklearnParzenKNN:
         self, 
         k_min: int, 
         k_max: int, 
-        plot: bool = False,
+        plot: bool = True,
+        show_plot: bool = False,
         save_dir: Path | None = None,
         filename: str | None = None,
     ):
@@ -878,37 +882,38 @@ class SklearnParzenKNN:
         opt_k = int(ks[best_idx])
         opt_err = float(errors[best_idx])
 
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=ks, y=errors, mode="lines", name="LOO empirical risk"))
-        fig.add_trace(go.Scatter(
-            x=[opt_k], y=[opt_err],
-            mode="markers",
-            name=f"min @ k={opt_k}",
-            marker=dict(size=12, symbol="x")
-        ))
-        fig.add_vline(x=opt_k, line_dash="dash",
-                        annotation_text=f"k* = {opt_k}",
-                        annotation_position="top")
-        fig.update_layout(
-            title="LOO empirical risk vs k (sklearn-based Parzen-kNN)",
-            xaxis_title="k",
-            yaxis_title="Empirical risk (LOO error rate)",
-            hovermode="x unified",
-        )
-
         if plot:
-            fig.show()
-        
-        save_path = None
-        if save_dir is not None:
-            save_dir = Path(save_dir)
-            save_dir.mkdir(parents=True, exist_ok=True)
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=ks, y=errors, mode="lines", name="LOO empirical risk"))
+            fig.add_trace(go.Scatter(
+                x=[opt_k], y=[opt_err],
+                mode="markers",
+                name=f"min @ k={opt_k}",
+                marker=dict(size=12, symbol="x")
+            ))
+            fig.add_vline(x=opt_k, line_dash="dash",
+                            annotation_text=f"k* = {opt_k}",
+                            annotation_position="top")
+            fig.update_layout(
+                title="LOO empirical risk vs k (sklearn-based Parzen-kNN)",
+                xaxis_title="k",
+                yaxis_title="Empirical risk (LOO error rate)",
+                hovermode="x unified",
+            )
 
-            if filename is None:
-                filename = f"loo_optimal_{k}NN.png"
+            if show_plot:
+                fig.show()
+            
+            save_path = None
+            if save_dir is not None:
+                save_dir = Path(save_dir)
+                save_dir.mkdir(parents=True, exist_ok=True)
 
-            save_path = save_dir / filename
-            fig.write_image(save_path, scale=2, width=1200, height=600)
+                if filename is None:
+                    filename = f"loo_optimal_{k}NN.png"
+
+                save_path = save_dir / filename
+                fig.write_image(save_path, scale=2, width=1200, height=600)
 
         return opt_k, errors
     
