@@ -25,7 +25,7 @@ def main():
     parser.add_argument('-d', '--delim', type=str,
                         help='The delimiter to use to parse csv file.', default=',')
     parser.add_argument('-l', '--download', action='store_true',
-                        help='Skip downloading dataset or not.')
+                        help='Download dataset or not.')
     parser.add_argument('-s', "--save_output", default="",
                         help="Where to save output images and table during benchmarking. Should be directory")
     parser.add_argument('-v', "--verbose", action='store_true',

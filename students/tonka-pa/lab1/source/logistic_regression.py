@@ -44,7 +44,7 @@ class LogRegNumpy():
         # sampling strategy
         sampling_mode:           Literal['uniform','by_margin'] = 'uniform',
         shuffle:                 bool = True,
-        sampling_tau:            float = 0.2, # TODO: check what it means actually
+        sampling_tau:            float = 0.2,
         sampling_min_prob:       float = 0.01,
         refresh_rate:            int = 100, # how often to update samples probability distribution
         # --- logs
@@ -243,6 +243,9 @@ class LogRegNumpy():
             Vdb = self.momentum * Vdb - (1.0 - self.momentum) * b_grad
             
             if self.optim_step:
+                # learning_rate = self._golden_ratio_search(
+                #     xi, yi, Vdw, Vdb, 0, 1, 1e-5, 1000
+                # )
                 learning_rate = self._line_search_backtracking(
                     xi, yi, w_grad, b_grad, Vdw, Vdb
                 )
@@ -320,7 +323,57 @@ class LogRegNumpy():
         logits = self.forward(X)
         loss = self._loss_fn_opt(y, logits, reduction='mean')
         return loss
+    
+    
+    def _golden_ratio_search(
+        self,
+        X, y,
+        dir_w:  np.ndarray, dir_b:  np.ndarray,
+        lo: float = 0.0, hi: float = 1.0,
+        tol: float = 1e-6, max_iters: int = 1000
+    ):  
+        # zero iteration
+        logits_0 = self.forward(X)
+        Xdw = X @ dir_w
+        Wdw = np.sum(self.weights * dir_w)
+        dw_norm2 = np.sum(dir_w * dir_w)
+        ######################################
+
+        def f(t):
+            logits_t = logits_0 + t * (Xdw + dir_b)
+            loss_t = self._loss_fn_opt(y, logits_t, reduction='mean')
+            if self.l2 > 0.0:
+                loss_t += self.l2 * 0.5 * (2.0 * t * Wdw + t * t * dw_norm2)
+            return loss_t
         
+        inv_phi = (5**0.5 - 1) / 2
+        x1 = hi - inv_phi * (hi - lo)
+        x2 = lo + inv_phi * (hi - lo)
+        f1 = f(x1)
+        f2 = f(x2)
+
+        i = 0
+        while (hi - lo) / 2 >= tol and i < max_iters:            
+
+            if f1 > f2:
+                lo, f1 = x1, f2
+                x1 = hi - inv_phi * (hi - lo)
+                x2 = lo + inv_phi * (hi - lo)
+                f2 = f(x2)
+            else:
+                hi, f2 = x2, f1
+                x1 = hi - inv_phi * (hi - lo)
+                x2 = lo + inv_phi * (hi - lo)
+                f1 = f(x1)
+            
+            i += 1
+            
+        if i == max_iters:
+            print(f'Optimal search max iter reached, step is unoptimal')
+
+        return (lo + hi) / 2.
+        
+
     def _line_search_backtracking(
         self,
         X, y, 
@@ -567,7 +620,7 @@ class LogRegNumpy():
     # 1) -abs(margins) - для любых (правильных или нет) случаев с малой долей уверенности
     # 2) -margins вместо -abs(margins) - для точно неправильно классифицированных случаев
     def _margin_sampling_probs(
-        self, X, y, use_abs: bool = True, tau: float = 0.2, min_prob: float = 0.01
+        self, X, y, use_abs: bool = True, tau: float = 0.2, min_prob: float = 0.01 # small tau -> harder samples, large tau -> closer to uniform
     ):
         margins = self.calc_margins(X, y)
 

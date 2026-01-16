@@ -141,7 +141,7 @@
             "random_seed": 18092025
         },
 
-        "SGD_l2_0-25": {
+        "SGD_l2_0.25": {
 
             "init_strategy": "normal",
 
@@ -176,7 +176,7 @@
             "random_seed": 18092025
         },
 
-        "SGD_momentum_0-9": {
+        "SGD_momentum_0.9": {
 
             "init_strategy": "normal",
 
@@ -319,7 +319,7 @@
 
     "SGDClassifierSK":
     {
-        "L2_0-01_const-lr": {
+        "L2_0.01_const-lr": {
             "loss": "log_loss",
             "penalty": "l2",
             "alpha": 0.01,
@@ -336,7 +336,7 @@
             "verbose": 0
         },
 
-        "L2_0-01_adapt-lr": {
+        "L2_0.01_adapt-lr": {
             "loss": "log_loss",
             "penalty": "l2",
             "alpha": 0.01,
@@ -353,7 +353,7 @@
             "verbose": 0
         },
 
-        "L2_0-01_opt-lr": {
+        "L2_0.01_opt-lr": {
             "loss": "log_loss",
             "penalty": "l2",
             "alpha": 0.01,

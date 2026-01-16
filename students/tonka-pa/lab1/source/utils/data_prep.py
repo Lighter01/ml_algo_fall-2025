@@ -46,7 +46,7 @@ def read_data(path_to_file: str, delim: str = ',') -> pd.DataFrame:
 
 def preprocess_data(df: pd.DataFrame, verbose: bool = False) -> tuple[tuple[list, list], tuple[list, list], list[str]]:
     df.columns = map(col_names_transform, df.columns.values)
-
+    print(df.columns)
     X, y = df.drop(columns=['target']), df['target']
     if verbose:
         print(f"X shape: {X.shape},\t y shape: {y.shape}")
