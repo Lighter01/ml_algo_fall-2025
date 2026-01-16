@@ -78,36 +78,36 @@
 
 Кастомный класс kNN поддерживает использование следующих ядер:
 - `uniform (0)` — стандартный kNN. Теоретическое ядро равно $\frac{1}{2}$ в области определения, однако для взвешенного голосования в данном случае значение константы роли не играет, 
-\[
+$$
 K_{\text{uniform}}(r) =
 \begin{cases}
 1, & |r| \le 1 \\
 0, & |r| > 1
 \end{cases}
-\]
+$$
 
-- `inverse (1)` — по определению ядром не является, но для взвешенного голосования подходит,
-\[
+- `inverse (1)` — по определению ядром не является, но для взвешенного голосования подходит, 
+$$
 K_{\text{inverse}}(r) = \frac{1}{r + \epsilon}
-\]
+$$
 
 - `triangular (2)` — треугольное ядро, оно просто треугольное,
-\[
+$$
 K_{\text{triangular}}(r) = \max\!\left(0,\, 1 - |r|\right)
-\]
+$$
 - `epanechnikov (3)` — епанечниково ядро, также известное как параболическое ядро. Оптимпальное ядро в терминах MSE-оценки, но это свойство актуально больше для ядерной оценки плотности, чем для задачи взвешенной классификации,
-\[
+$$
 K_{\text{Epanechnikov}}(r) = \max\!\left(0,\, 1 - r^2\right)
-\]
+$$
 - `gaussian (4)` — гауссово (нормальное) ядро, является бесконечно гладки. Теоретическое ядро, используемое в ядерной оценке плотности, содержит нормализующую константу $2\pi^{-\frac{1}{2}}$, что опять же не очень актуально для взвешенного голосования, где все элементы будут взвешенны на одну и ту же константу. В задаче взвешенной классификации важен относительный, а не абсолютный порядок наблюдений,  
-\[
+$$
 K_{\text{Gaussian}}(r) = \exp\!\left(-\tfrac{1}{2} r^2\right)
-\]
+$$
 - `tricube (5)` — трикубическое ядро, непрерывное и имеет две непрерывные производные (тоже важно в другой задаче, но все же),
-\[
+$$
 K_{\text{tricube}}(r) =
 \max\!\left(0,\, \left(1 - |r|^3\right)^3\right)
-\]
+$$
 
 ### Прототипирование
 
@@ -140,7 +140,7 @@ K_{\text{tricube}}(r) =
 
 Принципиальная разница между ядрами в основном в их лоакльном поведении в диапазоне, где они положительно определены.
 
-![kernels_vis](/datasets/images/kernels_vis.png "Графики функций ядер")
+![kernels_vis](/students/tonka-pa/lab2/datasets/images/kernels_vis.png "Графики функций ядер")
 
 ### Предобработка
 
@@ -164,23 +164,23 @@ K_{\text{tricube}}(r) =
 Т.к. объемы всех экспериментов довольно велики, показывать графики эмпирического риска для каждого случая не представляется возможным, поэтому будет приведено лишь несколько примеров того, как выглядят выходные графики функций, использованных в экспериментах. Однако сводные таблицы результатов по каждому ядру приведены в полном объеме.
 
 Рисунок 1. Пример графика эмпирического риска для гауссовго ядра без прототипирования с помощью LOO-оценки (data leakage, но самая быстрая реализация)
-![](/results/gaussian/loo_fast_kernel-gaussian_k-1-50_proto-no-proto.png)
+![](/students/tonka-pa/lab2/results/gaussian/loo_fast_kernel-gaussian_k-1-50_proto-no-proto.png)
 
 Рисунок 2. Пример графика эмпирического риска для гауссовго ядра без прототипирования с помощью CV-оценки (30 фолдов)
-![gaussian_no_proto_cv](/results/gaussian/cv_risk_kernel-gaussian_k-1-50_proto-no-proto.png)
+![gaussian_no_proto_cv](/students/tonka-pa/lab2/results/gaussian/cv_risk_kernel-gaussian_k-1-50_proto-no-proto.png)
 
 Рисунок 3. Пример графика эмпирического риска для гауссовго ядра без прототипирования с помощью LOO-оценки (без data leakage, но менее эффективная реализация)
-![](/results/gaussian/loo_fair_kernel-gaussian_k-1-50_proto-no-proto.png)
+![](/students/tonka-pa/lab2/results/gaussian/loo_fair_kernel-gaussian_k-1-50_proto-no-proto.png)
 
 Рисунок 4. Пример графика эмпирического риска для гауссовго ядра с STOLP-прототипированием с помощью CV-оценки
-![](/results/gaussian/cv_risk_kernel-gaussian_k-1-50_proto-stolp.png)
+![](/students/tonka-pa/lab2/results/gaussian/cv_risk_kernel-gaussian_k-1-50_proto-stolp.png)
 
 Рисунок 5. Пример графика эмпирического риска для гауссовго ядра с ENN+OSS-прототипированием с помощью CV-оценки
-![](/results/gaussian/cv_risk_kernel-gaussian_k-1-50_proto-enn-oss.png)
+![](/students/tonka-pa/lab2/results/gaussian/cv_risk_kernel-gaussian_k-1-50_proto-enn-oss.png)
 
 
 Рисунок 6. Пример графика эмпирического риска для гауссовго ядра без прототипирования с помощью LOO-оценки для sklearn-реализации
-![](/results/gaussian/loo_sklearn_kernel-gaussian_k-1-50_proto-no-proto.png)
+![](/students/tonka-pa/lab2/results/gaussian/loo_sklearn_kernel-gaussian_k-1-50_proto-no-proto.png)
 
 Стоит отметить следующие факты:
 - кастомное решение и решение, полученное на базе адаптированного sklearn-классификатора, получилось идентичным;
@@ -191,22 +191,22 @@ K_{\text{tricube}}(r) =
 Сводные таблицы содержат в себе собранные для каждой модели с определенным ядром метрики с каждого шага, описанного в предыдущем пункте. Результаты отсортированы по столбцу `F1`.
 
 Таблица 1. Результаты для *gaussian kernel*
-![table_gaussian_kernel](/results/gaussian/model_comparison_kernel-gaussian.md)
+![table_gaussian_kernel](/students/tonka-pa/lab2/results/gaussian/model_comparison_kernel-gaussian.md)
 
 Таблица 2. Результаты для *uniform kernel*
-![table_uniform_kernel](/results/uniform/model_comparison_kernel-uniform.md)
+![table_uniform_kernel](/students/tonka-pa/lab2/results/uniform/model_comparison_kernel-uniform.md)
 
 Таблица 3. Результаты для *inverse kernel*
-![table_inverse_kernel](/results/inverse/model_comparison_kernel-inverse.md)
+![table_inverse_kernel](/students/tonka-pa/lab2/results/inverse/model_comparison_kernel-inverse.md)
 
 Таблица 4. Результаты для *triangular kernel*
-![table_triangular_kernel](/results/triangular/model_comparison_kernel-triangular.md)
+![table_triangular_kernel](/students/tonka-pa/lab2/results/triangular/model_comparison_kernel-triangular.md)
 
 Таблица 5. Результаты для *epanechnikov kernel*
-![table_epanechnikow_kernel](/results/epanechnikov/model_comparison_kernel-epanechnikov.md)
+![table_epanechnikow_kernel](/students/tonka-pa/lab2/results/epanechnikov/model_comparison_kernel-epanechnikov.md)
 
 Таблица 6. Результаты для *tricube kernel*
-![table_tricube_kernel](/results/tricube/model_comparison_kernel-tricube.md)
+![table_tricube_kernel](/students/tonka-pa/lab2/results/tricube/model_comparison_kernel-tricube.md)
 
 ---
 
