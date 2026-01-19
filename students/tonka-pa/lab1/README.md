@@ -2,12 +2,27 @@
 
 Кратко: реализована многоклассовая логистическая регрессия (softmax + cross-entropy) на NumPy, обучаемая GD/SGD/minibatch с momentum, L2-регуляризацией, адаптивным шагом (line search), выборкой по отстуту (margin) и ранней остановкой. Проведен бенчмарк и сравнение с эталонными моделями scikit-learn.
 
+## Воспроизводимость результатов кода
+
+Для воспроизведения среды, в которой запускались тесты, рекомендуется установить все зависимости, указанные в `requirements.txt`.
+
+Для запуска и репликации экспериментов код стоит запускать из директории `students/tonka-pa/lab1`. Для запуска тестов рекомендуется вызвать следующую команду:
+
+```bash
+python source/main.py datasets/ source/utils \
+model_params.json -d ";" -l -s results/
+```
+
+Подробнее о доступных аргументах можно узнать, вызвав `python source/main.py --help`.
+
+Рекомендуется запустить тесты хотя бы раз, чтобы получить все доступные артефакты экспериментов. В репозитории содержатся только те артефакты, что были использованы в отчете, чтобы не засорять репозиторий. Ознакомиться со всеми выходными файлами можно отдельно, скачав их с [google drive](https://drive.google.com/drive/folders/1s294GRZsdPbw-mD31VEbEggPBI4o4GRK?usp=sharing).
+
 ## Структура проекта
 
 ```
 .
-├── AGENTS.md
 ├── README.md
+├── requirements.txt
 ├── datasets
 │   └── data.csv
 ├── results
@@ -90,7 +105,7 @@ def calc_margins(self, X, y_true):
 
 Если применить модель ко всем объектам обучающей выборки, посчитать на них отступ и отсортировать по нему, то получим примерно такой график:
 
-![Margins](results/LogRegNumpy/LogRegNumpy_SGD_correlation_init_margins.png)
+![Margins](results/LogRegNumpy/images/LogRegNumpy_SGD_correlation_init_margins.png)
 
 ### 3. Градиент функции потерь
 Градиент cross-entropy по весам и смещениям:
@@ -275,9 +290,9 @@ p_w, r_w, f_w, _             = precision_recall_fscore_support(yva, yhat, averag
 
 Примеры графиков качества:
 
-![Loss](results/LogRegNumpy/LogRegNumpy_MiniBatch_SGD_l2_momentum_loss.png)
-![ROC](results/LogRegNumpy/LogRegNumpy_MiniBatch_SGD_l2_momentum_roc.png)
-![Confusion Matrix](results/LogRegNumpy/LogRegNumpy_MiniBatch_SGD_l2_momentum_multiclass_confusion_matrix.png)
+![Loss](results/LogRegNumpy/images/LogRegNumpy_MiniBatch_SGD_l2_momentum_loss.png)
+![ROC](results/LogRegNumpy/images/LogRegNumpy_MiniBatch_SGD_l2_momentum_roc.png)
+![Confusion Matrix](results/LogRegNumpy/images/LogRegNumpy_MiniBatch_SGD_l2_momentum_multiclass_confusion_matrix.png)
 
 ### 11. Сравнение с эталонными моделями (scikit-learn)
 Сводные метрики (средние по 5-fold CV):

@@ -440,9 +440,17 @@ def benchmark_classifier(
     fit_args   = fit_args   or {}
 
     if output_path:
-        save_path = output_path + model_cls.__name__ + '_' + test_name_suffix + '_'
+        base_path = Path(output_path)
+        images_dir = base_path / "images"
+        tables_dir = base_path / "tables"
+        images_dir.mkdir(parents=True, exist_ok=True)
+        tables_dir.mkdir(parents=True, exist_ok=True)
+        prefix = f"{model_cls.__name__}_{test_name_suffix}_"
+        image_save_path = (images_dir / prefix).as_posix()
+        table_save_path = (tables_dir / prefix).as_posix()
     else:
-        save_path = ""
+        image_save_path = ""
+        table_save_path = ""
 
     # ===== 1) Stratified CV on train =====
     skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
@@ -476,8 +484,8 @@ def benchmark_classifier(
         ))
 
     cv_df = pd.DataFrame(per_fold).set_index("fold")
-    _print_cv_tables(cv_df, title="Cross-Validation (per-fold + mean)", 
-                     ascii_borders=ascii_borders, save_path=save_path)
+    _print_cv_tables(cv_df, title="Cross-Validation (per-fold + mean)",
+                     ascii_borders=ascii_borders, save_path=table_save_path)
 
     # ===== 2) Fit on full train, evaluate on test =====
     final_model = model_cls(**model_args)
@@ -492,27 +500,27 @@ def benchmark_classifier(
     _print_pretty_classification_report(
         y_test, y_pred, class_names=class_names, digits=4,
         title=f"Classification Report (test set)  [final fit {final_fit_time:.2f}s]",
-        ascii_borders=ascii_borders, save_path=save_path
+        ascii_borders=ascii_borders, save_path=table_save_path
     )
 
     # ===== 3) Plots (Loss + ROC + Confusions + Margins) =====
     if plot_loss:
-        plot_loss_per_epoch(final_model, display_loss, save_path=save_path)
+        plot_loss_per_epoch(final_model, display_loss, save_path=image_save_path)
     
     if plot_roc:
         plot_roc_ovr_sklearn_style(y_train, y_test, y_proba, class_names=class_names,
-                                   display_plot=display_roc, save_path=save_path)
+                                   display_plot=display_roc, save_path=image_save_path)
 
     if plot_confusions:
         plot_multiclass_confusion_matrix(
             y_test, y_pred, class_names=class_names, normalize=True,
             title="Confusion Matrix (test, row-normalized)",
-            display_plot=display_confusions, save_path=save_path
+            display_plot=display_confusions, save_path=image_save_path
         )
         plot_tp_fp_fn_tn_table(
             y_test, y_pred, class_names=class_names,
             title="Per-class TP/FP/FN/TN (test)",
-            display_plot=display_confusions, save_path=save_path
+            display_plot=display_confusions, save_path=image_save_path
         )
 
     # Optional margin curves (only if model implements `calc_margins`)
@@ -521,11 +529,11 @@ def benchmark_classifier(
             # Train margins (on full train the model was fit on)
             train_margins = final_model.calc_margins(X_train, y_train)
             viz_margins(train_margins, eps=eps, display_plot=display_margins,
-                        save_path=save_path)
+                        save_path=image_save_path)
             # Test margins
             test_margins  = final_model.calc_margins(X_test,  y_test)
-            viz_margins(test_margins, eps=eps, display_plot=display_margins, 
-                        save_path=save_path)
+            viz_margins(test_margins, eps=eps, display_plot=display_margins,
+                        save_path=image_save_path)
         except Exception as e:
             # Be silent but informative
             print(f"[info] Skipped margin plots due to error: {e}")
